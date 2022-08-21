@@ -8,6 +8,7 @@ connection = psycopg2.connect(
     password="88f8d1e2dde1740481b28077fc401873054f8f852c77b8726fc467f2c039bbcb"
 )
 cursor = connection.cursor()
+
 def add_new_channel(user_id, channel_link:str):
     cursor.execute(f"SELECT id FROM channels WHERE link = '{channel_link}'")
     channel_id = cursor.fetchone()
