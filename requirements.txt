@@ -1,0 +1,6 @@
+aiogram
+asyncio
+psycopg2
+googleapiclient
+requests
+bs4

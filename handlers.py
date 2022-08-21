@@ -1,0 +1,62 @@
+from aiogram import filters, types
+from dispatcher import dp
+import db 
+
+KEYBOARD = types.ReplyKeyboardMarkup([
+        [types.KeyboardButton("Add a channel")], 
+        [types.KeyboardButton("View channels")], 
+        [types.KeyboardButton("Delete a channel")]
+    ], resize_keyboard=True)
+
+@dp.message_handler(filters.Command("start"))
+async def start(message:types.Message):
+    db.add_user_settings(message.chat.id)
+    await message.answer("Hello I am YouTube alarm bot.\nI am monitoring for a new YouTube video of a channel.",
+                        reply_markup=KEYBOARD)
+
+@dp.message_handler(filters.Text("Add a channel") | filters.Command("add"))
+async def add_channel(message:types.Message):
+    db.set_user_settings(message.chat.id, is_add_channel=1)
+    await message.answer("Add a new channel alarm.\nWrite a link of a channel.")
+@dp.message_handler(filters.Text("View channels") | filters.Command("view"))
+async def view_channels(message:types.Message):
+    channels = db.view_channels(message.chat.id)
+    s = "YouTube channels you are alarmed on.\n"
+    for channel in channels:
+        s += f"{channel[0]} - {channel[1]}\n"
+    await message.answer(s, reply_markup=KEYBOARD)
+@dp.message_handler(filters.Text("Delete a channel") | filters.Command("delete"))
+async def delete_channels(message:types.Message):
+    db.set_user_settings(message.chat.id, is_delete_channel=1)
+    await message.answer("Delete an alarm from a channel.\nWrite a name or link of the channel.")
+
+@dp.message_handler(filters.Text)
+async def get_text(message:types.Message):
+    if "https://www.youtube.com/watch?" in message.text:
+        db.set_user_settings(message.chat.id, is_add_channel=0)
+        db.set_user_settings(message.chat.id, is_delete_channel=0)
+        await message.answer("This is YouTube video. Write here link of the channel.", reply_markup=KEYBOARD)
+    elif db.get_user_settings(message.chat.id, ["is_add_channel"])[0]:
+        try:
+            status, chl_name = db.add_new_channel(message.chat.id, message.text)
+        except:
+            await message.answer("Oops. Something goes wrong. Make sure you write correct link")
+        if status:
+            await message.answer(f"Channel {chl_name} was successfully alarmed.\nNow wait for new videos.", reply_markup=KEYBOARD)
+        else:
+            await message.answer(f"You are already alarmed for {chl_name}", reply_markup=KEYBOARD)
+        db.set_user_settings(message.chat.id, is_add_channel=0)
+        db.set_user_settings(message.chat.id, is_delete_channel=0)
+    elif db.get_user_settings(message.chat.id, ["is_delete_channel"])[0]:
+        if "https://www.youtube.com/" in message.text:
+            res = db.delete_channel(message.chat.id, channel_link=message.text)
+        else:
+            res = db.delete_channel(message.chat.id, channel_name=message.text)
+        if res:
+            await message.answer("Alarm was successfully deleted", reply_markup=KEYBOARD)
+        else:
+            await message.answer("You don't have an alarm of the channel", reply_markup=KEYBOARD)
+        db.set_user_settings(message.chat.id, is_delete_channel=0)
+        db.set_user_settings(message.chat.id, is_add_channel=0)
+
+    
