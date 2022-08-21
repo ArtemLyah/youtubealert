@@ -1,6 +1,6 @@
 aiogram
 asyncio
 psycopg2
-googleapiclient
+google-api-python-client
 requests
 bs4
