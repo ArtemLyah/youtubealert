@@ -37,10 +37,7 @@ async def get_text(message:types.Message):
         db.set_user_settings(message.chat.id, is_delete_channel=0)
         await message.answer("This is YouTube video. Write here link of the channel.", reply_markup=KEYBOARD)
     elif db.get_user_settings(message.chat.id, ["is_add_channel"])[0]:
-        try:
-            status, chl_name = db.add_new_channel(message.chat.id, message.text)
-        except:
-            await message.answer("Oops. Something goes wrong. Make sure you write correct link")
+        status, chl_name = db.add_new_channel(message.chat.id, message.text)
         if status:
             await message.answer(f"Channel {chl_name} was successfully alarmed.\nNow wait for new videos.", reply_markup=KEYBOARD)
         else:
