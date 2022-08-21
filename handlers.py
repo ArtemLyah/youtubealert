@@ -22,9 +22,11 @@ async def add_channel(message:types.Message):
 async def view_channels(message:types.Message):
     channels = db.view_channels(message.chat.id)
     s = "YouTube channels you are alarmed on.\n"
+    entities = []
     for channel in channels:
-        s += f"{channel[0]} - {channel[1]}\n"
-    await message.answer(s, reply_markup=KEYBOARD)
+        s += channel[0]+"\n"
+        entities.append(types.MessageEntity(type="text_link", offset=len(s)-len(channel[0])-1, length=len(channel[0]), url=channel[1]))
+    await message.answer(s, entities=entities, reply_markup=KEYBOARD)
 @dp.message_handler(filters.Text("Delete a channel") | filters.Command("delete"))
 async def delete_channels(message:types.Message):
     db.set_user_settings(message.chat.id, is_delete_channel=1)
@@ -37,13 +39,17 @@ async def get_text(message:types.Message):
         db.set_user_settings(message.chat.id, is_delete_channel=0)
         await message.answer("This is YouTube video. Write here link of the channel.", reply_markup=KEYBOARD)
     elif db.get_user_settings(message.chat.id, ["is_add_channel"])[0]:
-        status, chl_name = db.add_new_channel(message.chat.id, message.text)
-        if status:
-            await message.answer(f"Channel {chl_name} was successfully alarmed.\nNow wait for new videos.", reply_markup=KEYBOARD)
-        else:
-            await message.answer(f"You are already alarmed for {chl_name}", reply_markup=KEYBOARD)
-        db.set_user_settings(message.chat.id, is_add_channel=0)
-        db.set_user_settings(message.chat.id, is_delete_channel=0)
+        try:
+            status, chl_name = db.add_new_channel(message.chat.id, message.text)
+            if status:
+                await message.answer(f"Channel {chl_name} was successfully alarmed.\nNow wait for new videos.", reply_markup=KEYBOARD)
+            else:
+                await message.answer(f"You are already alarmed for {chl_name}", reply_markup=KEYBOARD)
+            db.set_user_settings(message.chat.id, is_add_channel=0)
+            db.set_user_settings(message.chat.id, is_delete_channel=0)
+        except Exception as ex:
+            await message.answer("Oops. Something goes wrong. Try to repeat later.")
+            print(ex.with_traceback())
     elif db.get_user_settings(message.chat.id, ["is_delete_channel"])[0]:
         if "https://www.youtube.com/" in message.text:
             res = db.delete_channel(message.chat.id, channel_link=message.text)
