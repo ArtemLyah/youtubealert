@@ -14,7 +14,7 @@ async def start(message:types.Message):
     await message.answer("Hello I am YouTube Bell bot.\nI am following new videos of YouTube channels. ",
                         reply_markup=KEYBOARD)
 
-@dp.message_handler(filters.Text("Add a notification") | filters.Command("add"))
+@dp.message_handler(filters.Text("Add a channel") | filters.Command("add"))
 async def add_channel(message:types.Message):
     db.set_user_settings(message.chat.id, is_add_channel=1)
     await message.answer("Add a new channel.\nWrite a link of a channel.")
