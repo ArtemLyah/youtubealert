@@ -11,17 +11,17 @@ KEYBOARD = types.ReplyKeyboardMarkup([
 @dp.message_handler(filters.Command("start"))
 async def start(message:types.Message):
     db.add_user_settings(message.chat.id)
-    await message.answer("Hello I am YouTube alarm bot.\nI am monitoring for a new YouTube video of a channel.",
+    await message.answer("Hello I am YouTube Bell bot.\nI am following new videos of YouTube channels. ",
                         reply_markup=KEYBOARD)
 
-@dp.message_handler(filters.Text("Add a channel") | filters.Command("add"))
+@dp.message_handler(filters.Text("Add a notification") | filters.Command("add"))
 async def add_channel(message:types.Message):
     db.set_user_settings(message.chat.id, is_add_channel=1)
-    await message.answer("Add a new channel alarm.\nWrite a link of a channel.")
+    await message.answer("Add a new channel.\nWrite a link of a channel.")
 @dp.message_handler(filters.Text("View channels") | filters.Command("view"))
 async def view_channels(message:types.Message):
     channels = db.view_channels(message.chat.id)
-    s = "YouTube channels you are alarmed on.\n"
+    s = "YouTube notifications of channels.\n"
     entities = []
     for channel in channels:
         s += channel[0]+"\n"
@@ -30,7 +30,7 @@ async def view_channels(message:types.Message):
 @dp.message_handler(filters.Text("Delete a channel") | filters.Command("delete"))
 async def delete_channels(message:types.Message):
     db.set_user_settings(message.chat.id, is_delete_channel=1)
-    await message.answer("Delete an alarm from a channel.\nWrite a name or link of the channel.")
+    await message.answer("Delete a channel.\nWrite a name or link of a channel.")
 
 @dp.message_handler(filters.Text)
 async def get_text(message:types.Message):
@@ -42,13 +42,13 @@ async def get_text(message:types.Message):
         try:
             status, chl_name = db.add_new_channel(message.chat.id, message.text)
             if status:
-                await message.answer(f"Channel {chl_name} was successfully alarmed.\nNow wait for new videos.", reply_markup=KEYBOARD)
+                await message.answer(f"Channel {chl_name} was successfully added.\nNow wait for new videos...", reply_markup=KEYBOARD)
             else:
-                await message.answer(f"You are already alarmed for {chl_name}", reply_markup=KEYBOARD)
+                await message.answer(f"You already have the channel {chl_name}", reply_markup=KEYBOARD)
             db.set_user_settings(message.chat.id, is_add_channel=0)
             db.set_user_settings(message.chat.id, is_delete_channel=0)
         except Exception as ex:
-            await message.answer("Oops. Something goes wrong. Try to repeat later.")
+            await message.answer("Oops... Something goes wrong. Try to repeat later.")
             print(ex.with_traceback())
     elif db.get_user_settings(message.chat.id, ["is_delete_channel"])[0]:
         if "https://www.youtube.com/" in message.text:
@@ -56,9 +56,9 @@ async def get_text(message:types.Message):
         else:
             res = db.delete_channel(message.chat.id, channel_name=message.text)
         if res:
-            await message.answer("Alarm was successfully deleted", reply_markup=KEYBOARD)
+            await message.answer("Channel was successfully deleted", reply_markup=KEYBOARD)
         else:
-            await message.answer("You don't have an alarm of the channel", reply_markup=KEYBOARD)
+            await message.answer("You don't have the channel", reply_markup=KEYBOARD)
         db.set_user_settings(message.chat.id, is_delete_channel=0)
         db.set_user_settings(message.chat.id, is_add_channel=0)
 
