@@ -13,11 +13,12 @@ async def start(message:types.Message):
     db.add_user_settings(message.chat.id)
     await message.answer("Hello I am YouTube Bell bot.\nI am following new videos of YouTube channels. ",
                         reply_markup=KEYBOARD)
-
-@dp.message_handler(filters.Text("Add a notification") | filters.Command("add"))
+# manage channels
+@dp.message_handler(filters.Text("Add a channel") | filters.Command("add"))
 async def add_channel(message:types.Message):
     db.set_user_settings(message.chat.id, is_add_channel=1)
     await message.answer("Add a new channel.\nWrite a link of a channel.")
+
 @dp.message_handler(filters.Text("View channels") | filters.Command("view"))
 async def view_channels(message:types.Message):
     channels = db.view_channels(message.chat.id)
@@ -27,11 +28,12 @@ async def view_channels(message:types.Message):
         s += channel[0]+"\n"
         entities.append(types.MessageEntity(type="text_link", offset=len(s)-len(channel[0])-1, length=len(channel[0]), url=channel[1]))
     await message.answer(s, entities=entities, reply_markup=KEYBOARD)
+
 @dp.message_handler(filters.Text("Delete a channel") | filters.Command("delete"))
 async def delete_channels(message:types.Message):
     db.set_user_settings(message.chat.id, is_delete_channel=1)
     await message.answer("Delete a channel.\nWrite a name or link of a channel.")
-
+#=============================================================================================
 @dp.message_handler(filters.Text)
 async def get_text(message:types.Message):
     if "https://www.youtube.com/watch?" in message.text:
