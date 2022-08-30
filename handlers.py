@@ -34,34 +34,40 @@ async def delete_channels(message:types.Message):
     db.set_user_settings(message.chat.id, is_delete_channel=1)
     await message.answer("Delete a channel.\nWrite a name or link of a channel.")
 #=============================================================================================
+async def add_channel(message, chn_link):
+    status, chl_name = db.add_new_channel(message.chat.id, chn_link)
+    if status:
+        await message.answer(f"Channel {chl_name} was successfully added.\nNow wait for new videos...", reply_markup=KEYBOARD)
+    else:
+        await message.answer(f"You already have the channel {chl_name}", reply_markup=KEYBOARD)
+async def delete_channel(message, chn_link):
+    res = db.delete_channel(message.chat.id, channel_link=chn_link)
+    if res:
+        await message.answer("Channel was successfully deleted", reply_markup=KEYBOARD)
+    else:
+        await message.answer("You don't have the channel", reply_markup=KEYBOARD)
+#=============================================================================================
 @dp.message_handler(filters.Text)
 async def get_text(message:types.Message):
-    if "https://www.youtube.com/watch?" in message.text:
-        db.set_user_settings(message.chat.id, is_add_channel=0)
-        db.set_user_settings(message.chat.id, is_delete_channel=0)
-        await message.answer("This is YouTube video. Write here link of the channel.", reply_markup=KEYBOARD)
-    elif db.get_user_settings(message.chat.id, ["is_add_channel"])[0]:
-        try:
-            status, chl_name = db.add_new_channel(message.chat.id, message.text)
-            if status:
-                await message.answer(f"Channel {chl_name} was successfully added.\nNow wait for new videos...", reply_markup=KEYBOARD)
-            else:
-                await message.answer(f"You already have the channel {chl_name}", reply_markup=KEYBOARD)
-            db.set_user_settings(message.chat.id, is_add_channel=0)
-            db.set_user_settings(message.chat.id, is_delete_channel=0)
-        except Exception as ex:
-            await message.answer("Oops... Something goes wrong. Try to repeat later.")
-            print(ex.with_traceback())
-    elif db.get_user_settings(message.chat.id, ["is_delete_channel"])[0]:
-        if "https://www.youtube.com/" in message.text:
-            res = db.delete_channel(message.chat.id, channel_link=message.text)
+    if "https://www.youtube.com/" in message.text:
+        if "https://www.youtube.com/watch?" in message.text:
+            await message.answer("This is YouTube video. Write here link of the channel.", reply_markup=KEYBOARD)
+        chn_link_details = message.text.removeprefix("https://www.youtube.com/").split("/")
+        if chn_link_details[0] in ["c", "channel", "user"]:
+            try:
+                chn_link = "https://www.youtube.com/"+chn_link_details[0]+"/"+chn_link_details[1]
+                if db.get_user_settings(message.chat.id, ["is_add_channel"])[0]:
+                    await add_channel(message, chn_link)
+                elif db.get_user_settings(message.chat.id, ["is_delete_channel"])[0]:
+                    await delete_channel(message, chn_link)
+                db.set_user_settings(message.chat.id, is_add_channel=0)
+                db.set_user_settings(message.chat.id, is_delete_channel=0)
+            except Exception as ex:
+                await message.answer("Oops... Something goes wrong. Try to repeat later.")
+                print(ex.with_traceback())
         else:
-            res = db.delete_channel(message.chat.id, channel_name=message.text)
-        if res:
-            await message.answer("Channel was successfully deleted", reply_markup=KEYBOARD)
-        else:
-            await message.answer("You don't have the channel", reply_markup=KEYBOARD)
-        db.set_user_settings(message.chat.id, is_delete_channel=0)
-        db.set_user_settings(message.chat.id, is_add_channel=0)
-
+            await message.answer("It isn't channel's link. Please go to the channel and write here its link")
+    else:
+        await message.answer("It isn't channel's link. Please go to the channel and write here its link")
+    
     
