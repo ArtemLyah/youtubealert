@@ -53,6 +53,8 @@ async def get_text(message:types.Message):
         if "https://www.youtube.com/watch?" in message.text:
             await message.answer("This is YouTube video. Write here link of the channel.", reply_markup=KEYBOARD)
         chn_link_details = message.text.removeprefix("https://www.youtube.com/").split("/")
+        if not chn_link_details:
+            chn_link_details = message.text.removeprefix("https://youtube.com/").split("/") 
         if chn_link_details[0] in ["c", "channel", "user"]:
             try:
                 chn_link = "https://www.youtube.com/"+chn_link_details[0]+"/"+chn_link_details[1]
