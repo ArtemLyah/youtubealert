@@ -49,7 +49,7 @@ async def delete_channel(message, chn_link):
 #=============================================================================================
 @dp.message_handler(filters.Text)
 async def get_text(message:types.Message):
-    if "https://www.youtube.com/" in message.text:
+    if "https://www.youtube.com/" in message.text or "https://youtube.com/" in message.text:
         if "https://www.youtube.com/watch?" in message.text:
             await message.answer("This is YouTube video. Write here link of the channel.", reply_markup=KEYBOARD)
         chn_link_details = message.text.removeprefix("https://www.youtube.com/").split("/")
