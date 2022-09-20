@@ -61,6 +61,7 @@ async def get_text(message:types.Message):
         if chn_link_details[0] in ["c", "channel", "user"]:
             try:
                 chn_link = "https://www.youtube.com/"+chn_link_details[0]+"/"+chn_link_details[1]
+                print(chn_link)
                 if db.get_user_settings(message.chat.id, ["is_add_channel"])[0]:
                     await add_channel(message, chn_link)
                 elif db.get_user_settings(message.chat.id, ["is_delete_channel"])[0]:
