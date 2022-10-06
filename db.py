@@ -79,18 +79,20 @@ def set_user_settings(user_id, **kwargs):
     connection.commit()
     return 1
 
-def get_new_video(time):
-    cursor.execute("""SELECT chl.id, chl.link, chl.playlist_id, chl.name 
+def get_new_videos():
+    cursor.execute("""SELECT chl.id, chl.link, chl.playlist_id, chl.name, chl.last_video_id
                     FROM channels as chl
                     INNER JOIN user_channel_relations as ucr ON chl.id=ucr.channel_id""")
     channels = cursor.fetchall()
     if not channels:
         return []
     for chl in channels:
-        new_videos = check_on_new_video(chl[2], time)
+        new_videos = check_on_new_video(chl[2], chl[4])
         if new_videos:
+            cursor.execute(f"UPDATE channels SET last_video_id='{new_videos[0]}' WHERE playlist_id='{chl[2]}'")
+            connection.commit()
             cursor.execute(f"SELECT user_id FROM user_channel_relations WHERE channel_id={chl[0]}")
-            yield [chl, cursor.fetchall(), new_videos]
+            yield [chl, cursor.fetchall(), new_videos[::-1]]
     return []
 
 

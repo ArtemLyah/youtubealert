@@ -24,12 +24,15 @@ def get_channel_info(url):
         print(err)
         return "0", "0"
 
-def check_on_new_video(playlist_id, time):
+def check_on_new_video(playlist_id, last_video_id):
     playlist = service.playlistItems().list(part="contentDetails", playlistId=playlist_id, maxResults=10).execute()
     videos = []
-    for video in playlist["items"]:
-        videoPublishedAt = datetime.strptime(video["contentDetails"]["videoPublishedAt"], "%Y-%m-%dT%H:%M:%SZ")
-        timedelta_sec = (datetime.utcnow() - videoPublishedAt).total_seconds()
-        if timedelta_sec/60 < time:
-            videos.append([video["contentDetails"]["videoId"], round(timedelta_sec/60)])
+    if last_video_id:
+        for video in playlist["items"]:
+            if video["contentDetails"]["videoId"] != last_video_id:
+                videos.append(video["contentDetails"]["videoId"])
+            else:
+                break
+    else:
+        videos.append(playlist["items"][0]["contentDetails"]["videoId"])
     return videos
