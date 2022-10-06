@@ -10,4 +10,4 @@ async def video_alarm(time):
                 for video in channel[2]:
                     text = f"New video was uploaded on {channel[0][3]}\nhttps://www.youtube.com/watch?v={video[0]}"
                     await bot.send_message(user[0], text)
-        await asyncio.sleep(time*60-5)
+        await asyncio.sleep(time*60-2)
