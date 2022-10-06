@@ -32,7 +32,7 @@ async def view_channels(message:types.Message):
 @dp.message_handler(filters.Text("Delete a channel") | filters.Command("delete"))
 async def delete_channels(message:types.Message):
     db.set_user_settings(message.chat.id, is_delete_channel=1)
-    await message.answer("Delete a channel.\nWrite a name or link of a channel.")
+    await message.answer("Delete a channel.\nWrite the link of the channel.")
 #=============================================================================================
 async def add_channel(message, chn_link):
     status, chl_name = db.add_new_channel(message.chat.id, chn_link)
